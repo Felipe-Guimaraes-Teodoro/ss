@@ -14,7 +14,7 @@ typedef struct {
 } PeerSession;
 
 #define MAX_PEERS 32
-#define TICK_MS 0 
+#define TICK_MS 16 
 extern PeerSession sessions[MAX_PEERS];
 
 typedef struct {
