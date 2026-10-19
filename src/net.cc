@@ -8,10 +8,6 @@
 #include "Capture.hpp"
 #include "shared.h"
 
-// #include <miniupnpc/miniupnpc.h>
-// #include <miniupnpc/upnpcommands.h> 
-// #include <miniupnpc/upnperrors.h> 
-
 PeerSession sessions[MAX_PEERS];
 
 PeerSession* get_or_create_peer_session(u16 peer_id, int width, int height) {
@@ -52,47 +48,6 @@ PeerSession* get_peer_session(u16 peer_id) {
 Server *createServer(u32 port) {
     Server *self = (Server*)malloc(sizeof(Server));
     if (!self) return NULL;
-
-    // int upnpError = 0;
-    // // UPNPDev *devList = upnpDiscover(10, NULL, NULL, 0, 0, 2, &upnpError);
-    // UPNPDev *devList = NULL;
-    //
-    // if (!devList) {
-    //     printf("Server: Failed to find UPnP devices (Discovery error code: %d). Skipping automatic port forwarding.\n", upnpError);
-    //     printf("Server: If hosting online, ensure port %u is manually forwarded.\n", port);
-    // } else {
-    //     UPNPUrls urls;
-    //     IGDdatas data;
-    //     char lanAddress[64];
-    //     char wanAddress[64];
-    //
-    //     int status = UPNP_GetValidIGD(devList, &urls, &data, lanAddress, sizeof(lanAddress), wanAddress, sizeof(wanAddress));
-    //     if (status != 1) {
-    //         printf("Server: Found UPnP device, but no valid Internet Gateway IGD was found.\n");
-    //     } else {
-    //         printf("Server: Found router! Local IP: %s | Public IP: %s\n", lanAddress, wanAddress);
-    //
-    //         std::string portStr = std::to_string(port);
-    //         int mapError = UPNP_AddPortMapping(
-    //             urls.controlURL, 
-    //             data.first.servicetype, 
-    //             portStr.c_str(), // external port
-    //             portStr.c_str(), // internal port
-    //             lanAddress,      // computer's local IP
-    //             "SSdemo",        // description for the router UI
-    //             "UDP",           // protocol
-    //             nullptr,         // remote host (null for any)
-    //             "0"              // lease duration (infinite)
-    //         );
-    //
-    //         if (mapError != UPNPCOMMAND_SUCCESS) {
-    //             printf("Server: Failed to add UPnP port mapping: %s (code %d)\n", strupnperror(mapError), mapError);
-    //         } else {
-    //             printf("Server: Successfully port-forwarded UDP port %u via UPnP!\n", port);
-    //         }
-    //     }
-    //     freeUPNPDevlist(devList);
-    // }
 
     ENetAddress addr;
     addr.host = ENET_HOST_ANY;
