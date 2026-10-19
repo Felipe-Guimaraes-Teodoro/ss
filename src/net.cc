@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <raylib.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <enet/enet.h>
@@ -143,11 +144,8 @@ void runClient(Client *client, volatile bool *running) {
     int tick = 0;
 
     ScreenCapturer* cap = init_screen_capture(0, 0);
-    while (cap->width == 0 && *running) {
-        SDL_Delay(10);
-    }
 
-    gstate->format = SDL_PIXELFORMAT_RGBA32;
+    while (cap->width == 0 && !WindowShouldClose());
 
     H264Encoder *enc = init_h264_encoder(cap->width, cap->height);
 

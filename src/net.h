@@ -1,8 +1,10 @@
 #pragma once
-#include <SDL3/SDL_render.h>
+
 #include <enet/enet.h>
 #include "core.h"
 #include "H264.hpp"
+
+#define PORT 7777
 
 struct H264Decoder;
 typedef struct {
@@ -15,6 +17,7 @@ typedef struct {
 
 #define MAX_PEERS 32
 #define TICK_MS 16 
+
 extern PeerSession sessions[MAX_PEERS];
 
 typedef struct {

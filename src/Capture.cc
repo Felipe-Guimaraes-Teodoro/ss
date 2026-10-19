@@ -74,7 +74,6 @@ static void on_stream_param_changed(void *data, uint32_t id, const struct spa_po
         self->width = info.size.width;
         self->height = info.size.height;
         
-        // Map PipeWire format to SDL format
         std::printf("Negotiated Capture Resolution: %dx%d\n", self->width, self->height);
     }
 }

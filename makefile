@@ -1,6 +1,6 @@
 CXXFLAGS = -std=c++23 -g -MMD -MP $(shell pkg-config --cflags libpipewire-0.3 libspa-0.2 libportal)
-LDFLAGS = $(shell pkg-config --libs libpipewire-0.3 libspa-0.2 libportal) -lSDL3 -lobs \
-          -lavdevice -lavformat -lavcodec -lswscale -lavutil -lenet -lm \
+LDFLAGS = $(shell pkg-config --libs libpipewire-0.3 libspa-0.2 libportal) -lobs \
+          -lavdevice -lavformat -lavcodec -lswscale -lavutil -lenet -lm -lraylib \
 
 SRCS = $(wildcard src/*.cc)
 OBJS = $(patsubst src/%.cc, obj/%.o, $(SRCS))
