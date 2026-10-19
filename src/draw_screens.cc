@@ -1,7 +1,7 @@
 #include <raylib.h>
 
 #define CLAY_IMPLEMENTATION
-#include "../external/clay/clay.h"
+#include "clay/clay.h"
 
 #include "draw_screens.h"
 

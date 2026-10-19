@@ -1,3 +1,6 @@
 [submodule "external/frametap"]
 	path = external/frametap
 	url = https://github.com/krazyjakee/frametap
+[submodule "external/clay"]
+	path = external/clay
+	url = https://github.com/nicbarker/clay
