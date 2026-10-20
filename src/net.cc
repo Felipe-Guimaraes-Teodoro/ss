@@ -5,8 +5,8 @@
 #include <enet/enet.h>
 #include <stdlib.h>
 #include "net.h"
-#include "H264.hpp"
-#include "Capture.hpp"
+#include "H264.h"
+#include "Capture.h"
 #include "shared.h"
 
 PeerSession sessions[MAX_PEERS];

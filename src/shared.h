@@ -2,7 +2,6 @@
 
 #include "core.h"
 
-// TODO: use this
 typedef enum {
     CONNECTING,
     SCREENSHARING,
@@ -14,6 +13,8 @@ typedef struct {
 
     int window_width, window_height;
     
+    ApplicationState app_state;
+
     // u8 padding[32];
     // u8* pixels;
 } State;

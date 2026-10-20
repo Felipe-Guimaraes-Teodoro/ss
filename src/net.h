@@ -2,7 +2,7 @@
 
 #include <enet/enet.h>
 #include "core.h"
-#include "H264.hpp"
+#include "H264.h"
 
 #define PORT 7777
 

@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <raylib.h>
 
 #include <cstdio>
@@ -8,6 +9,7 @@
 #include "draw_screens.h"
 #include "net.h"
 #include "shared.h"
+#include "gui.h"
 
 void *serverThreadFn(void* arg) {
     Server *server = (Server*) arg;
@@ -31,10 +33,10 @@ int main() {
     printf("is server? Enter 1 or 0\n");
     scanf("%d", &is_server);
 
+    GUIContext gctx;
+    init_gui(gctx);
+    
     SetTraceLogLevel(LOG_WARNING);
-
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(1920, 1080, "Screen Sharing");
 
     ENetAddress addr;
     if (is_server) {
@@ -66,12 +68,9 @@ int main() {
         pthread_detach(clientThread);
     }
 
-
-
     SetTargetFPS(60);
 
     while (!WindowShouldClose()){
-
         BeginDrawing();
             gstate->window_width = GetScreenWidth();
             gstate->window_height = GetScreenHeight();
@@ -86,9 +85,12 @@ int main() {
             }; 
             
             draw_screens(client, &dst_quad);
+            draw_gui(gctx);
+
         EndDrawing();
     }
 
+    close_gui();
     enet_deinitialize();
     
     return 0;

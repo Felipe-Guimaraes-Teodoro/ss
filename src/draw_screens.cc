@@ -1,7 +1,6 @@
 #include <raylib.h>
 
 #include "draw_screens.h"
-#include "../external/clay/clay.h"
 
 #include "net.h"
 #include "shared.h"
