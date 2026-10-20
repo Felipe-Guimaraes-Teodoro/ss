@@ -214,3 +214,16 @@ void runClient(Client *client, volatile bool *running) {
         }
     }
 }
+
+void *serverThreadFn(void* arg) {
+    Server *server = (Server*) arg;
+    runServer(server, &gstate->serverRunning);
+    return NULL;
+}
+
+void *clientThreadFn(void *arg) {
+    Client *client = (Client*) arg;
+    runClient(client, &gstate->clientRunning);
+    return NULL;
+}
+

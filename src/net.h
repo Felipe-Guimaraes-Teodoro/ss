@@ -48,4 +48,7 @@ Client *createClient(ENetAddress addr);
 void runServer(Server* server, volatile bool* running);
 void runClient(Client* client, volatile bool* running);
 
+void *serverThreadFn(void* arg);
+
+void *clientThreadFn(void *arg);
 
