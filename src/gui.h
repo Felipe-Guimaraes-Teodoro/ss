@@ -7,7 +7,10 @@
 typedef struct {
     char text[MAX_INPUT_LEN];
     int text_length;
+    
     bool is_focused;
+    bool pressed_enter;
+
     const char* placeholder;
 } TextInputState;
 

@@ -7,6 +7,18 @@
 
 #include "shared.h"
 
+TextInputState create_text_input(const char* placeholder){
+    TextInputState ts;
+
+    ts.text_length = 0;
+
+    ts.is_focused = false;
+    ts.pressed_enter = false;
+    ts.placeholder = placeholder;
+
+    return ts;
+}
+
 void init_gui(GUIContext &gctx){
     uint64_t totalMemorySize  = Clay_MinMemorySize();
     Clay_Arena clayMemory = Clay_CreateArenaWithCapacityAndMemory(
@@ -20,11 +32,9 @@ void init_gui(GUIContext &gctx){
     SetTextureFilter(gctx.fonts[0].texture, TEXTURE_FILTER_BILINEAR);
     Clay_SetMeasureTextFunction(Raylib_MeasureText, gctx.fonts);
     
-    gctx.ping_input.text_length = 0;
-    gctx.ping_input.is_focused = false;
-    gctx.ping_input.placeholder = "Server ping";
+    gctx.ping_input = create_text_input("Ping to connect");
 
-    gstate->app_state = Menu;
+    gstate->app_state = MENU;
 }
 
 // TODO: add QOL stuff (selection, shortcuts, etc)
@@ -47,7 +57,7 @@ void UpdateTextInput(TextInputState &input) {
     }
 
     if (IsKeyPressed(KEY_ENTER)) {
-        // send signal to loop to connect client
+        input.pressed_enter = true;
     }
 }
 
@@ -55,6 +65,11 @@ void UpdateTextInput(TextInputState &input) {
 #define WHITE_GUI (Clay_Color) {255, 255, 255, 255}
 #define BTN_COL (Clay_Color){ 45, 130, 75, 255 }
 #define BTN_HOVER (Clay_Color){ 60, 160, 90, 255 }
+
+const Clay_BorderElementConfig HIGHLIGHT_BORDER = {
+    .color = { 255, 255, 255, 40 },
+    .width = { .left = 3, .right = 0, .top = 3, .bottom = 0 }
+};
 
 // helper for rendering input boxes
 void draw_input_bar(TextInputState &input) {
@@ -118,10 +133,11 @@ void draw_input_bar(TextInputState &input) {
                 .layout = {
                     .sizing = { .width = CLAY_SIZING_FIXED(80), .height = CLAY_SIZING_GROW(0) },
                     .padding = { 8, 8 },
-                    .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
+                    .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER },
                 },
                 .backgroundColor = btnHovered ? BTN_HOVER : BTN_COL,
-                .cornerRadius = CLAY_CORNER_RADIUS(8)
+                .cornerRadius = CLAY_CORNER_RADIUS(8),
+                .border = HIGHLIGHT_BORDER,
             }
         ) {
             CLAY_TEXT(
@@ -132,7 +148,9 @@ void draw_input_bar(TextInputState &input) {
 
         if (btnClicked || (input.is_focused && IsKeyPressed(KEY_ENTER))) {
             input.is_focused = false;
-            gstate->app_state = Selected;
+            input.pressed_enter = true;
+
+            gstate->app_state = SELECTED;
         }
     }
 }
@@ -147,7 +165,7 @@ void draw_gui(GUIContext &gctx){
     );
 
     Clay_BeginLayout();
-    if (gstate->app_state == Menu) {
+    if (gstate->app_state == MENU) {
         CLAY(
             CLAY_ID("Root"),
             {
@@ -185,6 +203,11 @@ void draw_gui(GUIContext &gctx){
             ) {
                 draw_input_bar(gctx.ping_input);
 
+                if (gctx.ping_input.pressed_enter){
+                    gctx.ping_input.pressed_enter = false;
+                    gstate->app_state = SELECTED;
+                }
+
                 CLAY_TEXT(
                     CLAY_STRING("or"),
                     CLAY_TEXT_CONFIG({ .textColor = WHITE_GUI, .fontSize = 20 })
@@ -202,7 +225,8 @@ void draw_gui(GUIContext &gctx){
                             .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
                         },
                         .backgroundColor = btnHovered ? BTN_HOVER : BTN_COL,
-                        .cornerRadius = CLAY_CORNER_RADIUS(8)
+                        .cornerRadius = CLAY_CORNER_RADIUS(8),
+                        .border = HIGHLIGHT_BORDER,
                     },
                 ){
                     CLAY_TEXT(
@@ -214,12 +238,12 @@ void draw_gui(GUIContext &gctx){
                         gctx.ping_input.text[0] = '\0';
                         gctx.ping_input.text_length = 0;
 
-                        gstate->app_state = Selected;
+                        gstate->app_state = SELECTED;
                     }
                 }
             }
         }
-    }else if (gstate->app_state == Connected){
+    }else if (gstate->app_state == CONNECTED){
         CLAY(
             CLAY_ID("Root"),
             {

@@ -28,6 +28,8 @@ H264Encoder* init_h264_encoder(int width, int height, int fps) {
     av_opt_set(enc->codec_ctx->priv_data, "preset", "ultrafast", 0);
     av_opt_set(enc->codec_ctx->priv_data, "tune", "zerolatency", 0);
 
+    av_opt_set(enc->codec_ctx->priv_data, "dump_extra", "1", 0);
+
     avcodec_open2(enc->codec_ctx, codec, nullptr);
 
     enc->yuv_frame = av_frame_alloc();

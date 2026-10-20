@@ -3,9 +3,9 @@
 #include "core.h"
 
 typedef enum {
-    Menu,
-    Selected,
-    Connected,
+    MENU,
+    SELECTED,
+    CONNECTED,
 } ApplicationState;
 
 typedef struct {
