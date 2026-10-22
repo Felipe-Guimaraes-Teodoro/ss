@@ -478,6 +478,17 @@ void add_history(GUIContext& gctx) {
     if (gctx.ping_input.text_length == 0)
         return;
 
+    std::string text = gctx.ping_input.text;
+    std::ifstream input("history.txt");
+    std::string line;
+
+    while (std::getline(input, line)) {
+        if (line == text)
+            return;
+    }
+
+    input.close();
+
     std::ofstream history("history.txt", std::ios::app);
 
     if (!history.is_open()) {
@@ -485,10 +496,14 @@ void add_history(GUIContext& gctx) {
         return;
     }
 
-    history << gctx.ping_input.text << '\n';
-    history.close();
+    history << text << '\n';
 
-    gctx.history_lines.push_back(gctx.ping_input.text);
+    if (history.fail()) {
+        std::cerr << "Error writing to history file.\n";
+        return;
+    }
+
+    gctx.history_lines.push_back(text);
 }
 
 void close_gui(){
