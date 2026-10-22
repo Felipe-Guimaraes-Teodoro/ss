@@ -1,4 +1,5 @@
 #include "core.h"
+#include "pipewire/stream.h"
 #include <libportal/portal.h>
 #include <libportal/session.h>
 #include <pipewire/pipewire.h>
@@ -19,6 +20,7 @@ struct ScreenCapturer {
     XdpSession *session = nullptr;
     GMainLoop *glib_loop = nullptr;
     std::thread loop_thread;
+    // std::thread pw_thread;
 
     struct pw_main_loop *pw_loop = nullptr;
     struct pw_context *pw_context = nullptr;
@@ -252,3 +254,55 @@ void release_captured_frame(ScreenCapturer *cap) {
     std::lock_guard<std::mutex> lock(cap->mutex);
     cap->frame_ready = false;
 }
+
+void free_screen_capture(ScreenCapturer *cap) {
+    if (!cap) return;
+
+    // Signal background event loops to stop immediately
+    if (cap->pw_loop) {
+        pw_main_loop_quit(cap->pw_loop);
+    }
+    if (cap->glib_loop) {
+        g_main_loop_quit(cap->glib_loop);
+    }
+
+    if (cap->loop_thread.joinable()) {
+        cap->loop_thread.join();
+    }
+
+    // PipeWire resources in reverse order of creation
+    if (cap->pw_stream) {
+        pw_stream_destroy(cap->pw_stream);
+    }
+    if (cap->pw_core) {
+        pw_core_disconnect(cap->pw_core);
+    }
+    if (cap->pw_context) {
+        pw_context_destroy(cap->pw_context);
+    }
+    if (cap->pw_loop) {
+        pw_main_loop_destroy(cap->pw_loop);
+    }
+
+    // XDG Desktop Portal / GLib resources
+    if (cap->session) {
+        xdp_session_close(cap->session);
+        g_object_unref(cap->session);
+    }
+    if (cap->portal) {
+        g_object_unref(cap->portal);
+    }
+    if (cap->glib_loop) {
+        g_main_loop_unref(cap->glib_loop);
+    }
+
+    // free vector memory 
+    {
+        std::lock_guard<std::mutex> lock(cap->mutex);
+        cap->latest_frame_data.clear();
+        cap->latest_frame_data.shrink_to_fit();
+    }
+
+    delete cap;
+}
+

@@ -36,7 +36,12 @@ int main() {
         }
 
         if (gstate->app_state == DISCONNECTING) {
-            // disconnect from enet
+            if (gstate->clientRunning) {
+                gstate->clientRunning = false;
+            }
+            if (gstate->serverRunning) {
+                gstate->serverRunning = false;
+            }
             gstate->app_state = MENU;
         }
 

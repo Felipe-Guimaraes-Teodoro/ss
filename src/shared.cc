@@ -8,5 +8,6 @@ void initGstate() {
     gstate = (State*)malloc(sizeof(State));
     gstate->window_width = 1920;
     gstate->window_height = 1080;
+    gstate->sharing = true;
 }
 

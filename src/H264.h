@@ -29,6 +29,7 @@ u8* serialize_packet(EncodedPacket *packet, size_t *out_total_size);
 EncodedPacket deserialize_packet(const u8* buffer, u16 *out_sender_id);
 
 H264Encoder* init_h264_encoder(int width, int height, int fps = 60);
+void free_h264_encoder(H264Encoder* enc);
 EncodedPacket encode_frame(H264Encoder* enc, const uint8_t* raw_bgra_pixels, int width, int height);
 
 struct H264Decoder {

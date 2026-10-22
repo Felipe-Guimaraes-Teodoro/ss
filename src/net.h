@@ -5,15 +5,17 @@
 #include "H264.h"
 #include "gui.h"
 
-#define PORT 7777
+// (favali software foundation, rule 4.2)
+#define PORT 7777 
 
 struct H264Decoder;
 typedef struct {
     u32 peerId;
     H264Decoder *dec;
     int width, height;
-    u8* pixels;
-    bool active;
+    u8* pixels; 
+    bool active; // does the peer actually exist?
+    bool sharing; // is caring
 } PeerSession;
 
 #define MAX_PEERS 32
@@ -25,6 +27,11 @@ typedef struct {
     u32 disconectedPeerId;
 } DisconnectionPacket;
 
+typedef struct {
+    u32 peerId;
+    bool sharing;
+} SharingStatePacket;
+
 typedef enum {
     NET_EXIT_SUCCESS,
     NUM_NET_EXIT_CODES,
@@ -32,6 +39,7 @@ typedef enum {
 
 typedef enum {
     VIDEO_BYTES,
+    SHARING_STATE,
     DISCONNECTION,
     OTHER,
     N_CHANNELS,
