@@ -9,5 +9,6 @@ void initGstate() {
     gstate->window_width = 1920;
     gstate->window_height = 1080;
     gstate->app_state = MENU;
+    gstate->sharing = true;
 }
 

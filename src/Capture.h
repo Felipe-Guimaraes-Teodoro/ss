@@ -11,6 +11,7 @@ struct ScreenCapturer {
     XdpSession *session = nullptr;
     GMainLoop *glib_loop = nullptr;
     std::thread loop_thread;
+    // std::thread pw_thread;
 
     struct pw_main_loop *pw_loop = nullptr;
     struct pw_context *pw_context = nullptr;
@@ -29,6 +30,8 @@ struct ScreenCapturer {
 };
 
 ScreenCapturer* init_screen_capture(int width, int height); 
+
+void free_screen_capture(ScreenCapturer *cap); 
 u8* capture_next_frame(ScreenCapturer *cap);
 void release_captured_frame(ScreenCapturer *cap);
 

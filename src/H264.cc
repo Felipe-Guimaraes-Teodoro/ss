@@ -177,6 +177,28 @@ H264Decoder* init_h264_decoder(int width, int height) {
     return dec;
 }
 
+void free_h264_encoder(H264Encoder* enc) {
+    if (!enc) return;
+
+    if (enc->codec_ctx) {
+        avcodec_free_context(&enc->codec_ctx);
+    }
+    
+    if (enc->yuv_frame) {
+        av_frame_free(&enc->yuv_frame);
+    }
+    
+    if (enc->pkt) {
+        av_packet_free(&enc->pkt);
+    }
+    
+    if (enc->sws_ctx) {
+        sws_freeContext(enc->sws_ctx);
+    }
+
+    delete enc;
+}
+
 void free_h264_decoder(H264Decoder *dec) {
     if (!dec) return;
     if (dec->codec_ctx) {
@@ -231,4 +253,6 @@ uint8_t* decode_frame(H264Decoder* dec, const uint8_t* h264_data, int data_size)
     // returns nullptr in case packet is an incomplete section or needs more frames
     return nullptr;
 }
+
+
 
