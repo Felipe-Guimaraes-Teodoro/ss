@@ -1,4 +1,6 @@
 #include "gui.h"
+#include <fstream>
+#include <iostream>
 #include <raylib.h>
 
 #define CLAY_IMPLEMENTATION
@@ -11,6 +13,7 @@ TextInputState create_text_input(const char* placeholder){
     TextInputState ts;
 
     ts.text_length = 0;
+    ts.text[0] = '\0';
 
     ts.is_focused = false;
     ts.pressed_enter = false;
@@ -33,6 +36,8 @@ void init_gui(GUIContext &gctx){
     Clay_SetMeasureTextFunction(Raylib_MeasureText, gctx.fonts);
     
     gctx.ping_input = create_text_input("Ping to connect");
+
+    load_history(gctx);
 
     gstate->app_state = MENU;
 }
@@ -85,12 +90,10 @@ void draw_input_bar(TextInputState &input) {
         {
             .layout = {
                 .sizing = { .width = CLAY_SIZING_FIXED(400), .height = CLAY_SIZING_FIXED(48) },
-                .padding = { 6, 6 },
                 .childGap = 8,
                 .childAlignment = { .y = CLAY_ALIGN_Y_CENTER },
                 .layoutDirection = CLAY_LEFT_TO_RIGHT,
             },
-            .backgroundColor = { 25, 30, 40, 240 },
             .cornerRadius = CLAY_CORNER_RADIUS(12)
         }
     ) {
@@ -171,6 +174,7 @@ void draw_gui(GUIContext &gctx){
             {
                 .layout = {
                     .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) },
+                    .childGap = 100,
                     .childAlignment = { CLAY_ALIGN_X_CENTER, CLAY_ALIGN_Y_CENTER },
                     .layoutDirection = CLAY_TOP_TO_BOTTOM
                 }
@@ -194,7 +198,7 @@ void draw_gui(GUIContext &gctx){
                 CLAY_ID("Input"),
                 {
                     .layout {
-                        .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) },
+                        .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_FIT(0) },
                         .childGap = 16,
                         .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER },
                         .layoutDirection = CLAY_TOP_TO_BOTTOM,
@@ -239,6 +243,90 @@ void draw_gui(GUIContext &gctx){
                         gctx.ping_input.text_length = 0;
 
                         gstate->app_state = SELECTED;
+                    }
+                }
+            };
+            CLAY(CLAY_ID("History"), {
+                .layout = {
+                    .sizing = {
+                        .width = CLAY_SIZING_FIXED(400),
+                        .height = CLAY_SIZING_FIT(0)
+                    },
+                    .padding = { 8, 8, 8, 8},
+                    .childGap = 6,
+                    .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                },
+                .backgroundColor = { 20, 24, 33, 255 },
+                .cornerRadius = CLAY_CORNER_RADIUS(8),
+            }) {
+                CLAY(CLAY_ID("HistoryText"), {.layout = {.padding = {8, 8, 16, 16}}}){
+                    CLAY_TEXT(
+                        CLAY_STRING("Recent connections"),
+                        CLAY_TEXT_CONFIG({ .textColor = WHITE_GUI, .fontSize = 20, .textAlignment = CLAY_TEXT_ALIGN_CENTER })
+                    );
+                };
+
+                CLAY(CLAY_ID("HistoryScroll"), {
+                        .layout = {
+                            .sizing = {
+                                .width = CLAY_SIZING_GROW(0),
+                                .height = CLAY_SIZING_GROW(0)
+                            },
+                            .childGap = 6,
+                            .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                        },
+                }) {
+                    for (int i = 0; i < (int)gctx.history_lines.size(); i++) {
+                        char id[32];
+                        snprintf(id, sizeof(id), "HistoryItem_%d", i);
+
+                        Clay_ElementId itemId = Clay_GetElementId(
+                            Clay_String({ .length = (int32_t)strlen(id), .chars = id })
+                        );
+
+                        bool hovered = Clay_PointerOver(itemId);
+                        bool clicked = hovered &&
+                            IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
+
+                        CLAY(itemId, {
+                            .layout = {
+                                .sizing = {
+                                    .width = CLAY_SIZING_FIXED(384),
+                                    .height = CLAY_SIZING_FIT(40)
+                                },
+                                .padding = { 8, 8 },
+                                .childAlignment = {
+                                    .x = CLAY_ALIGN_X_LEFT,
+                                    .y = CLAY_ALIGN_Y_CENTER
+                                },
+                            },
+                            .backgroundColor = hovered
+                                ? (Clay_Color){ 60, 70, 90, 255 }
+                                : (Clay_Color){ 35, 42, 58, 255 },
+                            .cornerRadius = CLAY_CORNER_RADIUS(6),
+                        }) {
+                            CLAY_TEXT(
+                                Clay_String({
+                                    .length = (int32_t)gctx.history_lines[i].length(),
+                                    .chars = gctx.history_lines[i].c_str()
+                                }),
+                                CLAY_TEXT_CONFIG({
+                                    .textColor = WHITE_GUI,
+                                    .fontSize = 16
+                                })
+                            );
+                        }
+                        if (clicked) {
+                            std::cout << gctx.history_lines[i] << '\n';
+                            snprintf(
+                                gctx.ping_input.text,
+                                MAX_INPUT_LEN,
+                                "%s",
+                                gctx.history_lines[i].c_str()
+                            );
+
+                            gctx.ping_input.text_length = strlen(gctx.ping_input.text);
+                        }
                     }
                 }
             }
@@ -314,6 +402,93 @@ void draw_gui(GUIContext &gctx){
     Clay_RenderCommandArray renderCommands = Clay_EndLayout(GetFrameTime());
 
     Clay_Raylib_Render(renderCommands, gctx.fonts);
+}
+
+void load_history(GUIContext& gctx) {
+    gctx.history_lines.clear();
+
+    constexpr size_t MAX_LINE_LENGTH = 4096;
+    const std::string filename = "history.txt";
+
+    std::ifstream history(filename, std::ios::binary);
+
+    if (!history.is_open()) {
+        std::ofstream createFile(filename, std::ios::binary);
+
+        if (!createFile.is_open()) {
+            std::cerr << "Error creating history file: "
+                      << filename << '\n';
+            return;
+        }
+
+        createFile.close();
+
+        history.open(filename, std::ios::binary);
+
+        if (!history.is_open()) {
+            std::cerr << "Error opening history file: "
+                      << filename << '\n';
+            return;
+        }
+    }
+
+    if (history.peek() == 0xEF) {
+        char bom[3];
+        history.read(bom, 3);
+
+        if (history.gcount() != 3 ||
+            static_cast<unsigned char>(bom[1]) != 0xBB ||
+            static_cast<unsigned char>(bom[2]) != 0xBF) {
+            history.clear();
+            history.seekg(0);
+        }
+    }
+
+    std::string line;
+    size_t lineNumber = 0;
+
+    while (std::getline(history, line)) {
+        lineNumber++;
+
+        if (line.size() > MAX_LINE_LENGTH) {
+            std::cerr << "History line " << lineNumber
+                      << " exceeds maximum length; skipped.\n";
+            continue;
+        }
+
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
+
+        if (line.empty()) {
+            continue;
+        }
+
+        gctx.history_lines.push_back(line);
+    }
+
+    if (history.bad()) {
+        std::cerr << "Error reading history file.\n";
+    }
+
+    history.close();
+}
+
+void add_history(GUIContext& gctx) {
+    if (gctx.ping_input.text_length == 0)
+        return;
+
+    std::ofstream history("history.txt", std::ios::app);
+
+    if (!history.is_open()) {
+        std::cerr << "Error opening history file.\n";
+        return;
+    }
+
+    history << gctx.ping_input.text << '\n';
+    history.close();
+
+    gctx.history_lines.push_back(gctx.ping_input.text);
 }
 
 void close_gui(){

@@ -1,7 +1,5 @@
-#include <cstdlib>
 #include <raylib.h>
 
-#include <cstdio>
 #include <enet/enet.h>
 #include <obs/obs-avc.h>
 #include <pthread.h>
@@ -32,6 +30,7 @@ int main() {
                 initClient("localhost");
             } else {
                 initClient(gctx.ping_input.text);
+                add_history(gctx);
             }
         }
 
