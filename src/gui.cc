@@ -258,6 +258,7 @@ void draw_gui(GUIContext &gctx){
                 .layout = {
                     .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) },
                     .padding = {16, 16, 16, 32},
+                    .childGap = 16,
                     .childAlignment = { CLAY_ALIGN_X_CENTER, CLAY_ALIGN_Y_BOTTOM },
                     .layoutDirection = CLAY_LEFT_TO_RIGHT
                 }
