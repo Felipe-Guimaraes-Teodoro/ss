@@ -19,9 +19,6 @@ int main() {
     SetTraceLogLevel(LOG_WARNING);
     init_gui(gctx);
     
-    Client *client = NULL;
-    ENetAddress addr;
-
     SetTargetFPS(60);
 
     while (!WindowShouldClose()){
@@ -29,30 +26,13 @@ int main() {
         gstate->window_width = GetScreenWidth();
         gstate->window_height = GetScreenHeight();
 
-        // TODO: for the love of god remove these two from main
         if (gstate->app_state == SELECTED){
             if (gctx.ping_input.text_length == 0) {
-                Server *server = createServer(PORT);
-                addr = server->addr;
-                pthread_t serverThread;
-                gstate->serverRunning = true;
-                pthread_create(&serverThread, NULL, serverThreadFn, server);
-                pthread_detach(serverThread);
-
-                enet_address_set_host(&addr, "127.0.0.1");
+                initServer(gctx);
+                initClient("localhost");
             } else {
-                enet_address_set_host(&addr, gctx.ping_input.text);
+                initClient(gctx.ping_input.text);
             }
-
-            addr.port = PORT; // (favali software foundation, rule 4.2)
-            client = createClient(addr);
-            pthread_t clientThread;
-            gstate->clientRunning = true; 
-            pthread_create(&clientThread, NULL, clientThreadFn, client);
-            pthread_detach(clientThread);
-
-            gstate->app_state = CONNECTED; // very important or else you'll
-                                           // be creating endless servers
         }
 
         if (gstate->app_state == DISCONNECTING) {
@@ -70,7 +50,7 @@ int main() {
                 .height = (float)gstate->window_height 
             }; 
 
-            draw_screens(client, &dst_quad);
+            draw_screens(gstate->client, &dst_quad);
         }
 
 

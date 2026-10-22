@@ -193,6 +193,14 @@ void runClient(Client *client, volatile bool *running) {
             } 
             if (event.type == ENET_EVENT_TYPE_DISCONNECT) {
                 puts("CLIENT: Disconnected from server.\n");
+
+                if (event.data == NET_EXIT_SUCCESS) {
+                    gstate->clientRunning = false; 
+                } else {
+                    //try to reconnect once 
+                    client->peer = enet_host_connect(client->host, &client->addr, 2, 0);
+                }
+                                 
             }
         }
 
@@ -225,5 +233,30 @@ void *clientThreadFn(void *arg) {
     Client *client = (Client*) arg;
     runClient(client, &gstate->clientRunning);
     return NULL;
+}
+
+void initServer(GUIContext &gctx) {
+    if (gctx.ping_input.text_length == 0) {
+        gstate->server = createServer(PORT);
+        pthread_t serverThread;
+        gstate->serverRunning = true;
+        pthread_create(&serverThread, NULL, serverThreadFn, gstate->server);
+        pthread_detach(serverThread);
+        // enet_address_set_host(&gstate->server->addr, "127.0.0.1");
+    } 
+}
+
+void initClient(const char* name) {
+    ENetAddress addr;
+    addr.port = PORT; // (favali software foundation, rule 4.2)
+    enet_address_set_host(&addr, name);
+    gstate->client = createClient(addr);
+    pthread_t clientThread;
+    gstate->clientRunning = true; 
+    pthread_create(&clientThread, NULL, clientThreadFn, gstate->client);
+    pthread_detach(clientThread);
+
+    gstate->app_state = CONNECTED; // very important or else you'll
+                                   // be creating endless servers
 }
 

@@ -3,6 +3,7 @@
 #include <enet/enet.h>
 #include "core.h"
 #include "H264.h"
+#include "gui.h"
 
 #define PORT 7777
 
@@ -25,6 +26,11 @@ typedef struct {
 } DisconnectionPacket;
 
 typedef enum {
+    NET_EXIT_SUCCESS,
+    NUM_NET_EXIT_CODES,
+} ExitCode;
+
+typedef enum {
     VIDEO_BYTES,
     DISCONNECTION,
     OTHER,
@@ -45,10 +51,9 @@ typedef struct {
 Server *createServer(u32 port);
 Client *createClient(ENetAddress addr); 
 
-void runServer(Server* server, volatile bool* running);
-void runClient(Client* client, volatile bool* running);
+// Dispatches the run functions on different threads 
+// and connects to the appropriate address
 
-void *serverThreadFn(void* arg);
-
-void *clientThreadFn(void *arg);
+void initServer(GUIContext &gctx);
+void initClient(const char* host_name); 
 
