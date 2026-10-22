@@ -30,7 +30,7 @@ int main() {
         gstate->window_height = GetScreenHeight();
 
         // TODO: for the love of god remove these two from main
-        if (gstate->app_state == Selected){
+        if (gstate->app_state == SELECTED){
             if (gctx.ping_input.text_length == 0) {
                 Server *server = createServer(PORT);
                 addr = server->addr;
@@ -51,13 +51,18 @@ int main() {
             pthread_create(&clientThread, NULL, clientThreadFn, client);
             pthread_detach(clientThread);
 
-            gstate->app_state = Connected; // very important or else you'll
+            gstate->app_state = CONNECTED; // very important or else you'll
                                            // be creating endless servers
+        }
+
+        if (gstate->app_state == DISCONNECTING) {
+            // disconnect from enet
+            gstate->app_state = MENU;
         }
 
         ClearBackground({13, 20, 30});
 
-        if (gstate->app_state == Connected){
+        if (gstate->app_state == CONNECTED){
             Rectangle dst_quad = {
                 .x = 0,
                 .y = 0,
@@ -67,6 +72,7 @@ int main() {
 
             draw_screens(client, &dst_quad);
         }
+
 
         draw_gui(gctx);
 

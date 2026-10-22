@@ -244,14 +244,69 @@ void draw_gui(GUIContext &gctx){
             }
         }
     }else if (gstate->app_state == CONNECTED){
+        Clay_ElementId btnId = Clay_GetElementId(CLAY_STRING("DisconnectBtn"));
+        bool btnHovered = Clay_PointerOver(btnId);
+        bool btnClicked = btnHovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
+
+        Clay_ElementId share_btnId = Clay_GetElementId(CLAY_STRING("ShareBtn"));
+        bool share_btnHovered = Clay_PointerOver(share_btnId);
+        bool share_btnClicked = btnHovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
+
         CLAY(
             CLAY_ID("Root"),
             {
                 .layout = {
-                    .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) }
+                    .sizing = { .width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0) },
+                    .padding = {16, 16, 16, 32},
+                    .childAlignment = { CLAY_ALIGN_X_CENTER, CLAY_ALIGN_Y_BOTTOM },
+                    .layoutDirection = CLAY_LEFT_TO_RIGHT
                 }
             }
-        ) { // main canvas where everything is drawn onto
+        ){
+            CLAY(
+                CLAY_ID("DisconnectBtn"),
+                {
+                    .layout = {
+                        .sizing = { .width = CLAY_SIZING_FIT(0), .height = CLAY_SIZING_FIXED(48) },
+                        .padding = { 8, 8 },
+                        .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
+                    },
+                    .backgroundColor = btnHovered ? (Clay_Color){255, 25, 25, 255} : (Clay_Color){220, 10, 10, 255},
+                    .cornerRadius = CLAY_CORNER_RADIUS(8),
+                    .border = HIGHLIGHT_BORDER,
+                },
+            ){
+                CLAY_TEXT(
+                    CLAY_STRING("Quit"),
+                    CLAY_TEXT_CONFIG({ .textColor = WHITE_GUI, .fontSize = 20 })
+                );
+
+                if (btnClicked) {
+                    gstate->app_state = DISCONNECTING;
+                }
+            };
+            CLAY(
+                CLAY_ID("ShareBtn"),
+                {
+                    .layout = {
+                        .sizing = { .width = CLAY_SIZING_FIT(0), .height = CLAY_SIZING_FIXED(48) },
+                        .padding = { 8, 8 },
+                        .childAlignment = { .x = CLAY_ALIGN_X_CENTER, .y = CLAY_ALIGN_Y_CENTER }
+                    },
+                    .backgroundColor = share_btnHovered ? (Clay_Color){25, 25, 255, 255} : (Clay_Color){10, 10, 220, 255},
+                    .cornerRadius = CLAY_CORNER_RADIUS(8),
+                    .border = HIGHLIGHT_BORDER,
+                }
+            ) {
+                CLAY_TEXT(
+                    gstate->sharing ? CLAY_STRING("Stop Sharing") : CLAY_STRING("Resume Sharing"),
+                    CLAY_TEXT_CONFIG({ .textColor = WHITE_GUI, .fontSize = 20 })
+                );
+
+                if (share_btnClicked) {
+                    gstate->sharing = !gstate->sharing;
+                }
+            }
         }
     }
     

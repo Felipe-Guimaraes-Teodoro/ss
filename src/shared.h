@@ -6,6 +6,7 @@ typedef enum {
     MENU,
     SELECTED,
     CONNECTED,
+    DISCONNECTING,
 } ApplicationState;
 
 typedef struct {
