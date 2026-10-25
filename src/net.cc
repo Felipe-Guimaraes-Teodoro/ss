@@ -86,7 +86,7 @@ Client *createClient(ENetAddress server_addr) {
 }
 
 void broadcastPacket(Server *server, ENetPeer *sender, bool broadcast_to_self, u8 channel_id, ENetPacket *packet) {
-    broadcast_to_self = true;
+    // broadcast_to_self = true; // hardcoded debug value
     ENetPacket *packet_to_send = enet_packet_create(packet->data, packet->dataLength, packet->flags);
     
     for (size_t i = 0; i < server->host->peerCount; ++i) {
@@ -283,6 +283,7 @@ void runClient(Client *client, volatile bool *running) {
             enet_host_flush(client->host);
             
             last_sharing_state = gstate->sharing;
+            printf("CLIENT: told server sharing is %i\n", data.sharing);
         }
     }
 
@@ -345,6 +346,5 @@ void initClient(const char* name) {
     pthread_create(&clientThread, NULL, clientThreadFn, gstate->client);
     pthread_detach(clientThread);
 
-    gstate->app_state = CONNECTED;
 }
 

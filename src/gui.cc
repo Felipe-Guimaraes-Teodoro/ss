@@ -338,7 +338,7 @@ void draw_gui(GUIContext &gctx){
 
         Clay_ElementId share_btnId = Clay_GetElementId(CLAY_STRING("ShareBtn"));
         bool share_btnHovered = Clay_PointerOver(share_btnId);
-        bool share_btnClicked = btnHovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
+        bool share_btnClicked = share_btnHovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
 
         CLAY(
             CLAY_ID("Root"),

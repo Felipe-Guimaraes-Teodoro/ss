@@ -7,26 +7,26 @@
 #include <libportal/portal-helpers.h>
 
 struct ScreenCapturer {
-    XdpPortal *portal = nullptr;
-    XdpSession *session = nullptr;
-    GMainLoop *glib_loop = nullptr;
+    XdpPortal *portal;
+    XdpSession *session;
+    GMainLoop *glib_loop;
     std::thread loop_thread;
     // std::thread pw_thread;
 
-    struct pw_main_loop *pw_loop = nullptr;
-    struct pw_context *pw_context = nullptr;
-    struct pw_core *pw_core = nullptr;
-    struct pw_stream *pw_stream = nullptr;
+    struct pw_main_loop *pw_loop;
+    struct pw_context *pw_context;
+    struct pw_core *pw_core;
+    struct pw_stream *pw_stream;
     
     struct spa_hook core_listener;
     struct spa_hook stream_listener;
 
     std::mutex mutex;
     std::vector<u8> latest_frame_data;
-    int width = 0;
-    int height = 0;
-    uint32_t target_node_id = 0;
-    bool frame_ready = false;
+    int width;
+    int height;
+    uint32_t target_node_id;
+    bool frame_ready;
 };
 
 ScreenCapturer* init_screen_capture(int width, int height); 

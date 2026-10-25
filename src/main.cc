@@ -20,7 +20,6 @@ int main() {
     SetTargetFPS(60);
 
     while (!WindowShouldClose()){
-        BeginDrawing();
         gstate->window_width = GetScreenWidth();
         gstate->window_height = GetScreenHeight();
 
@@ -28,9 +27,11 @@ int main() {
             if (gctx.ping_input.text_length == 0) {
                 initServer(gctx);
                 initClient("localhost");
+                gstate->app_state = CONNECTED;
             } else {
                 initClient(gctx.ping_input.text);
                 add_history(gctx);
+                gstate->app_state = CONNECTED;
             }
         }
 
@@ -44,6 +45,7 @@ int main() {
             gstate->app_state = MENU;
         }
 
+        BeginDrawing();
         ClearBackground({13, 20, 30});
 
         if (gstate->app_state == CONNECTED){

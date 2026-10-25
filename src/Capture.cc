@@ -1,42 +1,13 @@
+#include "Capture.h"
 #include "core.h"
-#include "pipewire/stream.h"
 #include <libportal/portal.h>
-#include <libportal/session.h>
 #include <pipewire/pipewire.h>
 #include <spa/param/video/format-utils.h>
-#include <spa/utils/result.h>
-#include <glib.h>
 #include <gio/gio.h>
 #include <thread>
 #include <mutex>
 #include <vector>
-#include <optional>
-#include <chrono>
-#include <cstdio>
-#include <cstring>
-
-struct ScreenCapturer {
-    XdpPortal *portal = nullptr;
-    XdpSession *session = nullptr;
-    GMainLoop *glib_loop = nullptr;
-    std::thread loop_thread;
-    // std::thread pw_thread;
-
-    struct pw_main_loop *pw_loop = nullptr;
-    struct pw_context *pw_context = nullptr;
-    struct pw_core *pw_core = nullptr;
-    struct pw_stream *pw_stream = nullptr;
-    
-    struct spa_hook core_listener;
-    struct spa_hook stream_listener;
-
-    std::mutex mutex;
-    std::vector<u8> latest_frame_data;
-    int width = 0;
-    int height = 0;
-    uint32_t target_node_id = 0;
-    bool frame_ready = false;
-};
+#include <string.h>
 
 static void on_process(void *data) {
     ScreenCapturer *self = (ScreenCapturer *)data;
@@ -58,7 +29,7 @@ static void on_process(void *data) {
     if (self->latest_frame_data.size() != img_size) {
         self->latest_frame_data.resize(img_size);
     }
-    std::memcpy(self->latest_frame_data.data(), ptr, img_size);
+    memcpy(self->latest_frame_data.data(), ptr, img_size);
     self->frame_ready = true;
 
     pw_stream_queue_buffer(self->pw_stream, b);
@@ -76,7 +47,7 @@ static void on_stream_param_changed(void *data, uint32_t id, const struct spa_po
         self->width = info.size.width;
         self->height = info.size.height;
         
-        std::printf("Negotiated Capture Resolution: %dx%d\n", self->width, self->height);
+        printf("Negotiated Capture Resolution: %dx%d\n", self->width, self->height);
     }
 }
 
@@ -89,7 +60,7 @@ static const struct pw_stream_events stream_events = {
 static void core_done(void *data, uint32_t id, int seq) {
     ScreenCapturer *self = (ScreenCapturer *)data;
     if (id == PW_ID_CORE) {
-        std::printf("PipeWire core synced. Connecting stream to Node ID: %u...\n", self->target_node_id);
+        printf("PipeWire core synced. Connecting stream to Node ID: %u...\n", self->target_node_id);
 
         struct pw_properties *props = pw_properties_new(
             PW_KEY_MEDIA_TYPE, "Video",
@@ -151,7 +122,7 @@ static void start_pipewire_remote(ScreenCapturer *self, int node_id, int fd) {
     self->pw_core = pw_context_connect_fd(self->pw_context, fd, nullptr, 0);
 
     if (!self->pw_core) {
-        std::printf("Failed to connect PipeWire via portal socket FD!\n");
+        printf("Failed to connect PipeWire via portal socket FD!\n");
         return;
     }
 
@@ -169,7 +140,7 @@ static void on_session_started(GObject *source_object, GAsyncResult *res, gpoint
     
     gboolean success = xdp_session_start_finish(XDP_SESSION(source_object), res, &error);
     if (!error && success) {
-        std::printf("Screencast session started successfully!\n");
+        printf("Screencast session started successfully!\n");
         
         GVariant *streams = xdp_session_get_streams(self->session);
         if (streams && g_variant_n_children(streams) > 0) {
@@ -178,21 +149,21 @@ static void on_session_started(GObject *source_object, GAsyncResult *res, gpoint
             uint32_t node_id;
             GVariant *dict;
             if (g_variant_iter_next(&iter, "(u@a{sv})", &node_id, &dict)) {
-                std::printf("Captured PipeWire Node ID: %u\n", node_id);
+                printf("Captured PipeWire Node ID: %u\n", node_id);
                 g_variant_unref(dict);
                 
                 int fd = xdp_session_open_pipewire_remote(self->session);
                 if (fd != -1) {
-                    std::printf("Pipewire remote FD opened successfully: %d\n", fd);
+                    printf("Pipewire remote FD opened successfully: %d\n", fd);
                     start_pipewire_remote(self, node_id, fd);
                 } else {
-                    std::printf("Failed to open pipewire remote FD\n");
+                    printf("Failed to open pipewire remote FD\n");
                 }
             }
             g_variant_unref(streams);
         }
     } else {
-        std::printf("Session start failed: %s\n", error ? error->message : "unknown");
+        printf("Session start failed: %s\n", error ? error->message : "unknown");
         if (error) g_error_free(error);
     }
 }
@@ -203,18 +174,19 @@ static void on_screencast_created(GObject *source_object, GAsyncResult *res, gpo
     
     self->session = xdp_portal_create_screencast_session_finish(XDP_PORTAL(source_object), res, &error);
     if (error) {
-        std::printf("Create screencast session failed: %s\n", error->message);
+        printf("Create screencast session failed: %s\n", error->message);
         g_error_free(error);
         return;
     }
 
-    std::printf("Portal screencast session created. Prompting user...\n");
+    printf("Portal screencast session created. Prompting user...\n");
     xdp_session_start(self->session, nullptr, nullptr, on_session_started, self);
 }
 
 ScreenCapturer* init_screen_capture(int width, int height) {
     g_set_prgname("screen-capture-module");
     ScreenCapturer *self = new ScreenCapturer();
+
     self->width = width;
     self->height = height;
 
@@ -235,7 +207,7 @@ ScreenCapturer* init_screen_capture(int width, int height) {
         );
         g_main_loop_run(self->glib_loop);
     });
-    self->loop_thread.detach();
+    // self->loop_thread.detach();
 
     return self;
 }
